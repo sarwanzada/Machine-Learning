@@ -324,7 +324,25 @@ plt.ylabel('Sum of squared error')
 plt.plot(k_rng,sse)
 
 
+# #Naive Bayes Classifier
 
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import GaussianNB
+df = pd.read_csv("/content/titanic.csv")
+target = df.Survived
+df.drop(['PassengerId','Name','Survived','SibSp','Parch','Ticket','Cabin','Embarked'], axis='columns', inplace=True)
+dummies = pd.get_dummies(df.Sex, drop_first=False).astype(int)
+inputs = pd.concat([df.drop('Sex', axis='columns'), dummies], axis='columns')
+inputs.Age = inputs.Age.fillna(inputs.Age.mean())
+X_train, X_test, y_train, y_test = train_test_split(inputs, target, test_size=0.3)
+model = GaussianNB()
+model.fit(X_train, y_train)
+print("Model Accuracy:", model.score(X_test, y_test))
+X_test[:10]
+y_test[:10]
+model.predict(X_test[:10])
+model.predict_proba(X_test[:10])
 
 
 
