@@ -377,6 +377,112 @@ clf.fit(X_train, y_train)
 clf.score(X_test, y_test)
 clf.predict(emails)
 
+# Hyper parameter tuning
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn import svm, datasets
+import pandas as pd
+from sklearn.model_selection import GridSearchCV
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+
+
+iris = datasets.load_iris()
+
+df = pd.DataFrame(iris.data,columns=iris.feature_names)
+df['flower'] = iris.target
+df['flower'] = df['flower'].apply(lambda x: iris.target_names[x])
+df[47:52]
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(iris.data, iris.target, test_size=0.3)
+model = svm.SVC(kernel='rbf',C=30,gamma='auto')
+model.fit(X_train,y_train)
+model.score(X_test, y_test)
+from sklearn.model_selection import cross_val_score
+cross_val_score(svm.SVC(kernel='linear',C=10,gamma='auto'),iris.data, iris.target, cv=5)
+kernels = ['rbf', 'linear']
+C = [1,10,20]
+avg_scores = {}
+#using kenrel for similarity
+# for kval in kernels:
+#   for cval in C:
+#     cv_scores = cross_val_score(svm.SVC(kernel=kval,C=cval,gamma='auto'),iris.data, iris.target, cv=5)
+#     avg_scores[kval + '_' + str(cval)] = np.average(cv_scores)
+# avg_scores
+
+#using grid search for accessibiltiy
+from sklearn.model_selection import GridSearchCV
+clf = GridSearchCV(svm.SVC(gamma='auto'), {
+    'C': [1,10,20],
+    'kernel': ['rbf','linear']
+}, cv=5, return_train_score=False)
+clf.fit(iris.data, iris.target)
+clf.cv_results_
+df = pd.DataFrame(clf.cv_results_)
+df
+df = pd.DataFrame(clf.cv_results_)
+df[['param_C','param_kernel','mean_test_score']]
+dir(clf)
+clf.best_score_
+clf.best_params_
+from sklearn.model_selection import RandomizedSearchCV
+rs = RandomizedSearchCV(svm.SVC(gamma='auto'), {
+        'C': [1,10,20],
+        'kernel': ['rbf','linear']
+    },
+    cv=5, n_iter=5)
+rs.fit(iris.data, iris.target)
+pd.DataFrame(rs.cv_results_)[['param_C','param_kernel','mean_test_score']]
+
+#Choosing a model
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+
+models = {
+    'svm': {
+        'model': svm.SVC(gamma='auto'),
+        'params' : {
+            'C': [1,10,20],
+            'kernel': ['rbf','linear']
+        }
+    },
+    'random_forest': {
+        'model': RandomForestClassifier(),
+        'params' : {
+            'n_estimators': [1,5,10]
+        }
+    },
+    'logistic_regression' : {
+        'model': LogisticRegression(solver='liblinear',multi_class='auto'),
+        'params': {
+            'C': [1,5,10]
+        }
+    }
+}
+
+scores = []
+for model_name, mp in models.items():
+  clf = GridSearchCV(mp['model'], mp['params'], cv=5, return_train_score=False)
+  clf.fit(iris.data, iris.target)
+  scores.append({
+      'model': model_name,
+      'best_score': clf.best_score_,
+      'best_params': clf.best_params_
+  })
+  df = pd.DataFrame(scores,columns=['model','best_score','best_params'])
+  df
+  plt.figure(figsize=(8,5))
+plt.bar(df['model'], df['best_score'], color='skyblue')
+plt.title("Model Comparison - Best Cross Validation Score")
+plt.xlabel("Model")
+plt.ylabel("Best CV Accuracy")
+plt.ylim(0.9, 1.0)
+for i, v in enumerate(df['best_score']):
+    plt.text(i, v + 0.005, f"{v:.3f}", ha='center')
+plt.show()
+df
+
+
 
 
 
